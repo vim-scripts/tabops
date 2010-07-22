@@ -1,0 +1,51 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=3162
+
+Description:
+  This script provides tab operation functionalities.
+  Going to some tab, moving some tab, sorting tabs and reopening closed tabs.
+                                                                                      
+Usage:
+  1. (optional) set prefix if you want to change. (let g:Tabops_prefix)
+     default: <Tab>
+  2. (optional) let g:Tabops_use??? variables 0 if you want to disable some features.
+  3. start editing
+                                                                                      
+Feature:
+
+  * the default prefix is <Tab>
+                                                                           
+  if g:Tabops_useGoto == 1 then ...
+      <C-Tab>  : goto the next tab.
+      <S-C-Tab>: goto the prev tab.
+                                                                           
+      {prefix}1: goto the 1st tab.
+      {prefix}2: goto the 2nd tab.
+         :
+      {prefix}8: goto the 8th tab.
+      {prefix}9: goto the LAST tab.
+                                                                           
+  if g:Tabops_useMove == 1 then ...
+      {prefix}l: swap the current tab with the right one.
+      {prefix}h: swap the cerrent tab with the left one.
+                                                                           
+  :TabopsSortByPath
+      sorts tabs comparing their paths.
+                                                                           
+  :TabopsSortByBufnr
+      sorts tabs comparing their internal numbers.
+                                                                           
+  :TabopsSortByLastChange
+      sorts tabs comparing their recently-changed timestamps.
+      the most recent tab comes to left.
+                                                                           
+  :TabopsUniq
+      closes duplicate tabs.
+                                                                           
+  :TabopsCloseRight
+  :TabopsCloseLeft
+      closes right/left tabs except a current tab.
+                                                                           
+  :TabopsOpenSiblings [LOADED]
+      scans buffers that are in the same directory, and open them in tabs.
+      with LOADED, only loaded buffers are read in tabs. (not globbed)
+
