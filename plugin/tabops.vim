@@ -1,14 +1,11 @@
-" tabops
+" tabops -- A collection of miscellaneous functionalities operating tabs.
 "
 " Description:
 "
-"   A collection of miscellaneous functionalities operating tabs.
-"
-" Maintainer: Shuhei Kubota <kubota.shuhei+vim@gmail.com>
-"
-" Description:
 "   This script provides tab operation functionalities.
 "   Going to some tab, moving some tab and sorting tabs.
+"
+" Maintainer: Shuhei Kubota <kubota.shuhei+vim@gmail.com>
 "
 " Usage:
 "   1. (optional) set prefix if you want to change. (let g:Tabops_prefix)
@@ -17,6 +14,9 @@
 "   3. start editing
 "
 " Feature:
+"
+"   * the default prefix is <Tab>
+"
 "   if g:Tabops_useGoto == 1 then ...
 "       <C-Tab>  : goto the next tab.
 "       <S-C-Tab>: goto the prev tab.
@@ -53,19 +53,26 @@ if !exists('g:Tabops_useMove')
     let g:Tabops_useMove = 1
 endif
 
+if !exists('g:Tabops__closedTabHistory')
+    let g:Tabops__closedTabHistory = [] " [{'b': closed bufnr, 't': placed position}]
+endif
 
 augroup Tabops
     autocmd!
+
+    "to setting key mappings
     autocmd  BufEnter  * call <SID>Tabops_onBufEnter()
+
+    "to handle closing a tab
+    autocmd  BufLeave  * call <SID>Tabops_onBufLeave()
+    autocmd  TabLeave  * call <SID>Tabops_onTabLeave()
+    autocmd  BufWinLeave  * call <SID>Tabops_onBufWinLeave()
 augroup END
-command!  TabopsSortByPath  :call <SID>Tabops_sortByPath()
-command!  TabopsSortByBufnr  :call <SID>Tabops_sortByBufnr()
-command!  TabopsSortByLastChange  :call <SID>Tabops_sortByLastChange()
+command!  TabopsSortByPath       :call <SID>Tabops_sortByPath()
+command!  TabopsSortByBufnr      :call <SID>Tabops_sortByBufnr()
+command!  TabopsSortByLastChange :call <SID>Tabops_sortByLastChange()
+command!  TabopsReopenClosedTab  :call <SID>Tabops_reopenClosedTab()
 
-
-"
-"setting key mappings
-"
 
 function! s:Tabops_onBufEnter()
     if g:Tabops_useGoto
@@ -76,6 +83,27 @@ function! s:Tabops_onBufEnter()
         call s:Tabops__enableMove()
     endif
 endfunction
+
+"if this is 1, do not record closing tabs.
+let s:Tabops__reopening = 0
+
+function! s:Tabops_onBufLeave()
+    if s:Tabops__reopening | return | endif
+    let s:Tabops__leavingBufferNumber = bufnr('%')
+endfunction
+
+function! s:Tabops_onTabLeave()
+    if s:Tabops__reopening | return | endif
+    let s:Tabops__leavingTabNumber = tabpagenr()
+endfunction
+
+function! s:Tabops_onBufWinLeave()
+    if s:Tabops__reopening | return | endif
+    call insert(g:Tabops__closedTabHistory, {'b': s:Tabops__leavingBufferNumber, 't': s:Tabops__leavingTabNumber}, 0)
+
+    let g:Tabops__closedTabHistory = g:Tabops__closedTabHistory[:4]
+endfunction
+
 
 function! s:Tabops__enableCtrlGoto()
     noremap  <silent>  <C-Tab>   :tabnext<CR>
@@ -101,7 +129,7 @@ endfunction
 
 
 "
-"sorting
+" sorting
 "
 
 function! s:Tabops_sortByPath()
@@ -150,7 +178,15 @@ function! s:Tabops_sortByLastChange__Cmpfunc(v1, v2)
     elseif  a:v2.value == ''
         return -1
     else
-        return a:v1.value < a:v2.value ? 1 : -1
+        "undolist doesn't have DATE column...
+        let now = strftime('%H:%M:%S', localtime())
+        if a:v1.value > now && a:v2.value > now || a:v1.value < now && a:v2.value < now
+            return a:v1.value < a:v2.value ? 1 : -1
+        elseif a:v2.value > now
+            return 1
+        else
+            return -1
+        endif
     endif
 endfunction
 
@@ -214,6 +250,39 @@ function! s:Tabops__sortByHoge(Evalfunc, Cmpfunc)
     let &lazyredraw = ld
 endfunction
 
+
+"
+" other operations
+"
+
+function! s:Tabops_reopenClosedTab()
+    if len(g:Tabops__closedTabHistory) == 0 | return | endif
+
+    let top = g:Tabops__closedTabHistory[0]
+    let g:Tabops__closedTabHistory = g:Tabops__closedTabHistory[1:]
+
+    let ld = &lazyredraw
+    let &lazyredraw = 1
+
+    let s:Tabops__reopening = 1
+
+    silent tablast
+    silent tabedit
+    silent execute string(top.b).'b '
+    for i in range(tabpagenr('$'))
+        if i == top.t | continue | endif
+        call s:Tabops__swapPrev()
+    endfor
+
+    let s:Tabops__reopening = 0
+
+    let &lazyredraw = ld
+endfunction
+
+
+"
+" utilities
+"
 
 function! s:Tabops__goto(tabindex)
     " return if a:tabindex is invalid
