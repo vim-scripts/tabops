@@ -32,20 +32,24 @@
 "       {prefix}h: swap the cerrent tab with the left one.
 "
 "   :TabopsSortByPath
-"       sort tabs comparing their paths.
+"       sorts tabs comparing their paths.
 "
 "   :TabopsSortByBufnr
-"       sort tabs comparing their internal numbers.
+"       sorts tabs comparing their internal numbers.
 "
 "   :TabopsSortByLastChange
-"       sort tabs comparing their recently-changed timestamps.
+"       sorts tabs comparing their recently-changed timestamps.
 "       the most recent tab comes to left.
 "
 "   :TabopsUniq
-"       close duplicate tabs.
+"       closes duplicate tabs.
+"
+"   :TabopsCloseRight
+"   :TabopsCloseLeft
+"       closes right/left tabs except a current tab.
 "
 "   :TabopsOpenSiblings [LOADED]
-"       scan buffers that are in the same directory, and open them in tabs.
+"       scans buffers that are in the same directory, and open them in tabs.
 "       with LOADED, only loaded buffers are read in tabs. (not globbed)
 
 if !exists('g:Tabops_prefix')
@@ -81,7 +85,9 @@ command!  TabopsSortByBufnr      :call <SID>Tabops_sortByBufnr()
 command!  TabopsSortByLastChange :call <SID>Tabops_sortByLastChange()
 command!  TabopsReopenClosedTab  :call <SID>Tabops_reopenClosedTab()
 command!  TabopsUniq             :call <SID>Tabops_uniq()
-command!  -nargs=? -complete=custom,<SID>Tabops_openSiblings__complete  TabopsOpenSiblings  :call <SID>Tabops_openSiblings(<q-args>)
+command!  TabopsCloseRight       :call <SID>Tabops_closeRight()
+command!  TabopsCloseLeft        :call <SID>Tabops_closeLeft()
+command!  -nargs=? -complete=customlist,<SID>Tabops_openSiblings__complete  TabopsOpenSiblings  :call <SID>Tabops_openSiblings(<q-args>)
 
 
 function! s:Tabops_openSiblings(arg)
@@ -119,7 +125,7 @@ function! s:Tabops_openSiblings(arg)
 endfunction
 
 function! s:Tabops_openSiblings__complete(argLead, cmdLine, cursorPos)
-    return 'LOADED'
+    return ['LOADED', '']
 endfunction
 
 function! s:Tabops_openSiblings__doGLOB()
@@ -377,6 +383,27 @@ endfunction
 "
 " other operations
 "
+
+function! s:Tabops_closeRight()
+    " close tabs
+    let ld = &lazyredraw
+    let &lazyredraw = 1
+    for i in range(tabpagenr('$'), tabpagenr() + 1, -1)
+        execute 'tabclose! ' . string(i)
+    endfor
+    let &lazyredraw = ld
+endfunction
+
+function! s:Tabops_closeLeft()
+    " close tabs
+    let ld = &lazyredraw
+    let &lazyredraw = 1
+    for i in range(tabpagenr() - 1, 1, -1)
+        execute 'tabclose! ' . string(i)
+    endfor
+    let &lazyredraw = ld
+endfunction
+
 
 function! s:Tabops_reopenClosedTab()
     if len(g:Tabops__closedTabHistory) == 0 | return | endif
