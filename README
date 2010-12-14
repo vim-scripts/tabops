@@ -1,8 +1,11 @@
 This is a mirror of http://www.vim.org/scripts/script.php?script_id=3162
 
 Description:
+                                                                                      
   This script provides tab operation functionalities.
-  Going to some tab, moving some tab, sorting tabs and reopening closed tabs.
+  Going to some tab, moving some tab and sorting tabs.
+                                                                                      
+Maintainer: Shuhei Kubota <kubota.shuhei+vim@gmail.com>
                                                                                       
 Usage:
   1. (optional) set prefix if you want to change. (let g:Tabops_prefix)
@@ -10,42 +13,48 @@ Usage:
   2. (optional) let g:Tabops_use??? variables 0 if you want to disable some features.
   3. start editing
                                                                                       
+  X. execute :Tabops command with some parameters (see Feature section)
+                                                                                      
 Feature:
-
+                                                                                      
   * the default prefix is <Tab>
-                                                                           
+                                                                                      
   if g:Tabops_useGoto == 1 then ...
       <C-Tab>  : goto the next tab.
       <S-C-Tab>: goto the prev tab.
-                                                                           
+                                                                                      
       {prefix}1: goto the 1st tab.
       {prefix}2: goto the 2nd tab.
          :
       {prefix}8: goto the 8th tab.
       {prefix}9: goto the LAST tab.
-                                                                           
+                                                                                      
   if g:Tabops_useMove == 1 then ...
       {prefix}l: swap the current tab with the right one.
       {prefix}h: swap the cerrent tab with the left one.
-                                                                           
-  :TabopsSortByPath
-      sorts tabs comparing their paths.
-                                                                           
-  :TabopsSortByBufnr
-      sorts tabs comparing their internal numbers.
-                                                                           
-  :TabopsSortByLastChange
-      sorts tabs comparing their recently-changed timestamps.
-      the most recent tab comes to left.
-                                                                           
-  :TabopsUniq
-      closes duplicate tabs.
-                                                                           
-  :TabopsCloseRight
-  :TabopsCloseLeft
-      closes right/left tabs except a current tab.
-                                                                           
-  :TabopsOpenSiblings [LOADED]
-      scans buffers that are in the same directory, and open them in tabs.
-      with LOADED, only loaded buffers are read in tabs. (not globbed)
+                                                                                      
+                                                                                      
+  :Tabops [Close | Open | ...]
+      Close
+          Right
+          Left
+              closes right/left tabs except the current tab.
+      Open
+          Siblings [LOADED]
+              scans buffers that are in the same directory, and open them in tabs.
+              with LOADED, only loaded buffers are read in tabs. (not globbed)
+          WndInNewTab
+              (in splitted window) closes the current window and opens it in new tab.
+      Reopen
+          re-opens a closed tab.
+      Sort
+          ByPath
+              sorts tabs comparing their paths.
+          ByBufnr
+              sorts tabs comparing their internal numbers.
+          ByLastChange
+              sorts tabs comparing their recently-changed timestamps.
+              the most recent tab comes to left.
+      Uniq
+          closes duplicate tabs.
 
