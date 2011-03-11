@@ -45,6 +45,8 @@
 "               with LOADED, only loaded buffers are read in tabs. (not globbed)
 "           WndInNewTab
 "               (in splitted window) closes the current window and opens it in new tab.
+"       Reopen
+"           re-opens a closed tab.
 "       Sort
 "           ByPath
 "               sorts tabs comparing their paths.
@@ -373,41 +375,35 @@ function! s:Tabops_sortByLastChange__Evalfunc(tabidx)
     call s:Tabops__goto(a:tabidx)
     "let currbufnr = bufnr('%')
 
-    redir => ul_as_str
-    silent undolist
-    redir END
-
-    let ul = split(ul_as_str, '\n')[1:]
-    if len(ul) == 0
-        return ''
-    else
-        let lastchange = matchstr(ul[-1], '\V\(\d\+:\d\+:\d\+\)')
-        if lastchange !~ '\V\(\d\+:\d\+:\d\+\)'
-            let seconds = 0 + matchstr(ul[-1], '\V\(\d\+\)', '\1', '')
-            let lastchange = strftime('%H:%M:%S', localtime() - seconds)
+    "get last changed datetime
+    "echom ' ' . bufname('%')
+    let last_time = 0
+    let ut = undotree()
+    if has_key(ut, 'seq_last')
+        let seq_last = ut.seq_last
+        "echom 'seq_last:' . seq_last
+        let ee = copy(ut.entries)
+        call filter(ee, 'v:val.seq == ' . seq_last)
+        if len(ee) > 0
+            let last_time = ee[0].time
+            "echom 'last_time:' . last_time
         endif
-        return lastchange
     endif
+    if last_time == 0
+        "couldn't fetch time -> try to fetch file timestamp
+        let last_time = getftime(expand('%'))
+        if last_time == -1
+            "new and clean buffers
+            let last_time = localtime()
+        endif
+    endif
+
+    "echom strftime('%Y%m%d %H:%M:%S', last_time)
+    return strftime('%Y%m%d %H:%M:%S', last_time)
 endfunction
 
 function! s:Tabops_sortByLastChange__Cmpfunc(v1, v2)
-    if a:v1.value == a:v2.value
-        return 0
-    elseif  a:v1.value == ''
-        return 1
-    elseif  a:v2.value == ''
-        return -1
-    else
-        "undolist doesn't have DATE column...
-        let now = strftime('%H:%M:%S', localtime())
-        if a:v1.value > now && a:v2.value > now || a:v1.value < now && a:v2.value < now
-            return a:v1.value < a:v2.value ? 1 : -1
-        elseif a:v2.value > now
-            return 1
-        else
-            return -1
-        endif
-    endif
+    return a:v1.value == a:v2.value ? 0 : a:v1.value < a:v2.value ? 1 : -1
 endfunction
 
 

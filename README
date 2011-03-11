@@ -1,12 +1,11 @@
 This is a mirror of http://www.vim.org/scripts/script.php?script_id=3162
 
 Description:
-                                                                                      
+
   This script provides tab operation functionalities.
   Going to some tab, moving some tab and sorting tabs.
-                                                                                      
-Maintainer: Shuhei Kubota <kubota.shuhei+vim@gmail.com>
-                                                                                      
+
+
 Usage:
   1. (optional) set prefix if you want to change. (let g:Tabops_prefix)
      default: <Tab>
