@@ -225,7 +225,7 @@ function! s:Tabops_openSiblings__doGLOB()
     let curr = bufnr('%')
     let path = expand('%:p:h')
 
-    let files = split(glob(path.'/*'))
+    let files = split(glob(path.'/*'), '\n')
 
     " open
     for i in range(len(files))
